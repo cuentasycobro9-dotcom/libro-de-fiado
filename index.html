@@ -278,6 +278,7 @@
       </div>
     </div>
     <div class="header-actions">
+      <button class="ghost" id="btnNotif" type="button">🔔 Notificaciones</button>
       <button class="ghost" id="btnCuenta" type="button">Cuenta</button>
       <button class="primary" id="btnNuevo" type="button">+ Nuevo deudor</button>
     </div>
@@ -838,6 +839,74 @@
       } catch (e) { toast("No se pudo eliminar en Drive."); }
     }
   };
+
+  // ---------- push notifications ----------
+  var VAPID_PUBLIC_KEY = "BGTft2mBvPvieIGDiaRYVD1ju3-rbNlLygLPL509zmqVDl5wNCw-sNKUt_6wtJ5qA_joQKhzYiONJgAVGBOM0mg";
+  var SUBS_FILE_NAME = "subs.json";
+  var subsFileId = null;
+
+  function urlBase64ToUint8Array(base64String) {
+    var padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+    var base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+    var rawData = atob(base64);
+    var outputArray = new Uint8Array(rawData.length);
+    for (var i = 0; i < rawData.length; ++i) outputArray[i] = rawData.charCodeAt(i);
+    return outputArray;
+  }
+
+  async function findOrCreateSubsFile() {
+    var q = encodeURIComponent("'" + folderId + "' in parents and name='" + SUBS_FILE_NAME + "' and trashed=false");
+    var res = await driveFetch("https://www.googleapis.com/drive/v3/files?q=" + q + "&fields=files(id,name)");
+    var data = await res.json();
+    if (data.files && data.files.length) return data.files[0].id;
+    var created = await driveFetch("https://www.googleapis.com/drive/v3/files", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: SUBS_FILE_NAME, parents: [folderId], mimeType: "application/json" })
+    });
+    var f = await created.json();
+    await driveFetch("https://www.googleapis.com/upload/drive/v3/files/" + f.id + "?uploadType=media", {
+      method: "PATCH", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ subs: [] })
+    });
+    return f.id;
+  }
+
+  async function saveSubscription(subJSON) {
+    subsFileId = await withReauth(findOrCreateSubsFile);
+    var res = await driveFetch("https://www.googleapis.com/drive/v3/files/" + subsFileId + "?alt=media");
+    var text = await res.text();
+    var data; try { data = JSON.parse(text || "{}"); } catch (e) { data = {}; }
+    var subs = Array.isArray(data.subs) ? data.subs : [];
+    subs = subs.filter(function (s) { return s.endpoint !== subJSON.endpoint; });
+    subs.push(subJSON);
+    await driveFetch("https://www.googleapis.com/upload/drive/v3/files/" + subsFileId + "?uploadType=media", {
+      method: "PATCH", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ subs: subs })
+    });
+  }
+
+  async function enableNotifications() {
+    if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
+      toast("Tu navegador no soporta notificaciones push.");
+      return;
+    }
+    try {
+      var perm = await Notification.requestPermission();
+      if (perm !== "granted") { toast("No diste permiso de notificaciones."); return; }
+      var reg = await navigator.serviceWorker.register("./sw.js");
+      await navigator.serviceWorker.ready;
+      var existing = await reg.pushManager.getSubscription();
+      var sub = existing || await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+      });
+      await withReauth(function () { return saveSubscription(sub.toJSON()); });
+      toast("Notificaciones activadas ✓");
+    } catch (err) {
+      toast("No se pudo activar notificaciones.");
+    }
+  }
+  $("#btnNotif").addEventListener("click", enableNotifications);
 
   $("#btnRefresh").addEventListener("click", async function () {
     var btn = $("#btnRefresh");
