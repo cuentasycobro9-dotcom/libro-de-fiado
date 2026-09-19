@@ -1,0 +1,937 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Libro de Fiado</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Public+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --bg: #EEF1EA;
+    --surface: #FFFFFF;
+    --surface-2: #E3E8DE;
+    --ink: #16211B;
+    --ink-soft: #56635A;
+    --ink-faint: #8A968C;
+    --accent: #2C6B4A;
+    --accent-ink: #F3F8F1;
+    --warn: #9C6B1E;
+    --warn-bg: #FBF0D9;
+    --warn-ink: #4A3410;
+    --danger: #A83A2C;
+    --danger-bg: #FAE6E1;
+    --danger-ink: #4E1B13;
+    --ok: #2C6B4A;
+    --ok-bg: #E1EDE3;
+    --border: #D6DBCF;
+    --shadow: rgba(22, 33, 27, 0.10);
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0F1712; --surface: #182219; --surface-2: #1F2B21;
+      --ink: #E8ECE4; --ink-soft: #A6B2A0; --ink-faint: #71806C;
+      --accent: #5FB287; --accent-ink: #0B1510;
+      --warn: #E3B45B; --warn-bg: #3B2E13; --warn-ink: #F7E7C4;
+      --danger: #E08373; --danger-bg: #3E1D16; --danger-ink: #FAD9D0;
+      --ok: #5FB287; --ok-bg: #1E3427;
+      --border: #2B382C; --shadow: rgba(0, 0, 0, 0.35);
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0F1712; --surface: #182219; --surface-2: #1F2B21;
+    --ink: #E8ECE4; --ink-soft: #A6B2A0; --ink-faint: #71806C;
+    --accent: #5FB287; --accent-ink: #0B1510;
+    --warn: #E3B45B; --warn-bg: #3B2E13; --warn-ink: #F7E7C4;
+    --danger: #E08373; --danger-bg: #3E1D16; --danger-ink: #FAD9D0;
+    --ok: #5FB287; --ok-bg: #1E3427;
+    --border: #2B382C; --shadow: rgba(0, 0, 0, 0.35);
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Public Sans", system-ui, -apple-system, sans-serif;
+    padding-inline: 16px;
+  }
+  h1, h2, h3, .display { font-family: "Fraunces", Georgia, serif; text-wrap: balance; }
+  .mono { font-family: "JetBrains Mono", ui-monospace, monospace; font-variant-numeric: tabular-nums; }
+  img { max-width: 100%; }
+  [hidden] { display: none !important; }
+  @media (prefers-reduced-motion: reduce) {
+    * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  }
+
+  #app { max-width: 880px; margin: 0 auto; padding-bottom: 64px; }
+
+  header.top {
+    position: sticky;
+    top: env(safe-area-inset-top, 0px);
+    z-index: 20;
+    background: var(--bg);
+    padding-block: 20px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+  }
+  header.top .titles h1 { margin: 0; font-size: 1.5rem; font-weight: 600; letter-spacing: -0.01em; }
+  .source-row { display: flex; align-items: center; gap: 6px; }
+  .source-row p { margin: 2px 0 0; font-size: 0.82rem; color: var(--ink-soft); }
+  .source-row button.icon {
+    background: transparent; border: none; color: var(--ink-soft); cursor: pointer;
+    padding: 2px 4px; font-size: 0.9rem; line-height: 1; border-radius: 6px;
+  }
+  .source-row button.icon:hover { background: var(--surface-2); }
+  .source-row button.icon.spinning { animation: spin 0.8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .header-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+
+  button.primary {
+    background: var(--accent); color: var(--accent-ink); border: none; border-radius: 10px;
+    padding: 10px 16px; font: inherit; font-weight: 600; font-size: 0.88rem; cursor: pointer;
+    white-space: nowrap; box-shadow: 0 1px 2px var(--shadow);
+  }
+  button.primary:hover { filter: brightness(1.05); }
+  button.primary:disabled { opacity: 0.6; cursor: default; }
+  button.primary:focus-visible, button.ghost:focus-visible, button.chip:focus-visible, .card:focus-visible {
+    outline: 2px solid var(--accent); outline-offset: 2px;
+  }
+  button.ghost {
+    background: transparent; border: 1px solid var(--border); color: var(--ink);
+    border-radius: 8px; padding: 8px 12px; font: inherit; font-size: 0.82rem; font-weight: 600; cursor: pointer;
+  }
+  button.ghost:hover { background: var(--surface-2); }
+  button.text {
+    background: none; border: none; color: var(--accent); font: inherit; font-weight: 600;
+    font-size: 0.82rem; cursor: pointer; padding: 4px 0;
+  }
+  button.danger-text { background: none; border: none; color: var(--danger); font: inherit; font-weight: 600; font-size: 0.82rem; cursor: pointer; }
+
+  .tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-block: 18px; }
+  @media (max-width: 640px) { .tiles { grid-template-columns: repeat(2, 1fr); } }
+  .tile { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; }
+  .tile .label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-faint); font-weight: 600; }
+  .tile .value { font-family: "Fraunces", serif; font-size: 1.35rem; font-weight: 600; margin-top: 4px; }
+  .tile .sub { font-size: 0.76rem; color: var(--ink-soft); margin-top: 2px; }
+  .tile.warn .value { color: var(--warn); }
+  .tile.danger .value { color: var(--danger); }
+
+  .alert { border-radius: 14px; padding: 14px 16px; margin-bottom: 18px; border: 1px solid var(--border); }
+  .alert.has-items { background: var(--warn-bg); border-color: color-mix(in srgb, var(--warn) 35%, var(--border)); }
+  .alert.calm { background: var(--ok-bg); border-color: color-mix(in srgb, var(--ok) 30%, var(--border)); }
+  .alert h2 { margin: 0 0 8px; font-size: 1rem; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+  .alert .row {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    padding: 8px 0; border-top: 1px solid color-mix(in srgb, currentColor 12%, transparent);
+  }
+  .alert .row:first-of-type { border-top: none; }
+  .alert .row .who { display: flex; flex-direction: column; min-width: 0; }
+  .alert .row .who strong { font-size: 0.92rem; }
+  .alert .row .who span { font-size: 0.76rem; color: var(--ink-soft); }
+  .alert .row .amt { font-size: 0.86rem; font-weight: 600; white-space: nowrap; }
+
+  .filters { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 14px; }
+  button.chip {
+    flex: none; background: var(--surface); border: 1px solid var(--border); color: var(--ink-soft);
+    padding: 7px 13px; border-radius: 999px; font: inherit; font-size: 0.82rem; font-weight: 600; cursor: pointer;
+  }
+  button.chip[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+  :root[data-theme="dark"] button.chip[aria-pressed="true"],
+  :root:not([data-theme="light"]) button.chip[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+
+  .list { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  @media (max-width: 640px) { .list { grid-template-columns: 1fr; } }
+  .card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 14px 16px;
+    cursor: pointer; display: flex; flex-direction: column; gap: 8px;
+  }
+  .card:hover { border-color: color-mix(in srgb, var(--accent) 40%, var(--border)); }
+  .card .head { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+  .card .head .name { font-family: "Fraunces", serif; font-size: 1.05rem; font-weight: 600; }
+  .card .head .phone { font-size: 0.76rem; color: var(--ink-faint); margin-top: 1px; }
+  .pill { font-size: 0.72rem; font-weight: 700; padding: 3px 9px; border-radius: 999px; white-space: nowrap; }
+  .pill.hoy { background: var(--warn-bg); color: var(--warn-ink); }
+  .pill.atrasado { background: var(--danger-bg); color: var(--danger-ink); }
+  .pill.proximo { background: var(--surface-2); color: var(--ink-soft); }
+  .pill.pagado { background: var(--ok-bg); color: var(--ok); }
+  .card .balance { font-size: 1.3rem; font-weight: 600; }
+  .card .balance small { font-size: 0.7rem; font-weight: 600; color: var(--ink-faint); text-transform: uppercase; letter-spacing: 0.04em; display: block; }
+  .card .meta { font-size: 0.8rem; color: var(--ink-soft); display: flex; justify-content: space-between; }
+  .card .actions { display: flex; gap: 8px; margin-top: 2px; }
+  .card .actions button { flex: 1; }
+
+  .empty { text-align: center; padding: 48px 20px; border: 1px dashed var(--border); border-radius: 16px; color: var(--ink-soft); }
+  .empty .display { font-size: 1.3rem; color: var(--ink); margin-bottom: 6px; }
+
+  dialog {
+    border: none; border-radius: 16px; padding: 0; background: var(--surface); color: var(--ink);
+    width: min(480px, calc(100vw - 32px)); max-height: min(88vh, 720px);
+  }
+  dialog::backdrop { background: rgba(10, 14, 10, 0.5); }
+  .dlg-inner { padding: 20px 22px 22px; overflow-y: auto; max-height: min(88vh, 720px); }
+  .dlg-inner h2 { margin: 0 0 4px; font-size: 1.2rem; }
+  .dlg-inner .dlg-sub { font-size: 0.82rem; color: var(--ink-soft); margin: 0 0 16px; }
+  .field { margin-bottom: 14px; display: flex; flex-direction: column; gap: 5px; }
+  .field label { font-size: 0.78rem; font-weight: 600; color: var(--ink-soft); }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  input, select, textarea {
+    font: inherit; background: var(--bg); border: 1px solid var(--border); border-radius: 8px;
+    padding: 9px 10px; color: var(--ink); width: 100%;
+  }
+  input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  textarea { resize: vertical; min-height: 60px; }
+  .dlg-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; }
+  .dlg-actions button { min-width: 90px; }
+
+  .detail-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 14px 0 18px; }
+  .detail-stats div { background: var(--surface-2); border-radius: 10px; padding: 10px; text-align: center; }
+  .detail-stats .label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ink-faint); font-weight: 700; }
+  .detail-stats .val { font-weight: 600; margin-top: 3px; }
+
+  .hist-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+  .hist-table th { text-align: left; font-size: 0.68rem; text-transform: uppercase; color: var(--ink-faint); font-weight: 700; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+  .hist-table td { padding: 7px 0; border-bottom: 1px solid var(--border); }
+  .hist-table td.amt { text-align: right; font-weight: 600; }
+  .hist-empty { color: var(--ink-faint); font-size: 0.82rem; padding: 10px 0; }
+
+  .toast {
+    position: fixed; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); left: 50%; transform: translateX(-50%);
+    background: var(--ink); color: var(--bg); padding: 10px 18px; border-radius: 999px;
+    font-size: 0.82rem; font-weight: 600; box-shadow: 0 4px 14px var(--shadow); z-index: 50;
+    opacity: 0; pointer-events: none; transition: opacity 0.2s ease;
+  }
+  .toast.show { opacity: 1; }
+
+  .banner { border-radius: 12px; padding: 12px 14px; font-size: 0.84rem; margin-bottom: 16px; border: 1px solid var(--border); }
+  .banner.err { background: var(--danger-bg); color: var(--danger-ink); border-color: color-mix(in srgb, var(--danger) 35%, var(--border)); }
+  .banner.note { background: var(--warn-bg); color: var(--warn-ink); border-color: color-mix(in srgb, var(--warn) 35%, var(--border)); }
+
+  /* setup screen */
+  #setup {
+    max-width: 640px; margin: 40px auto; background: var(--surface); border: 1px solid var(--border);
+    border-radius: 18px; padding: 28px 26px;
+  }
+  #setup h1 { margin: 0 0 6px; font-size: 1.5rem; }
+  #setup p { color: var(--ink-soft); font-size: 0.9rem; line-height: 1.5; }
+  #setup ol { padding-left: 20px; font-size: 0.88rem; color: var(--ink-soft); line-height: 1.7; }
+  #setup ol li { margin-bottom: 4px; }
+  #setup code, .origin-box {
+    background: var(--surface-2); border-radius: 6px; padding: 2px 6px; font-family: "JetBrains Mono", monospace;
+    font-size: 0.82rem; color: var(--ink);
+  }
+  .origin-box { display: inline-block; padding: 8px 12px; margin: 6px 0; word-break: break-all; }
+  #setupForm { margin-top: 18px; }
+
+  /* connect gate */
+  #connectGate {
+    max-width: 480px; margin: 60px auto; text-align: center; background: var(--surface);
+    border: 1px solid var(--border); border-radius: 18px; padding: 32px 26px;
+  }
+  #connectGate h2 { margin: 0 0 8px; }
+  #connectGate p { color: var(--ink-soft); font-size: 0.88rem; margin-bottom: 20px; }
+</style>
+</head>
+<body>
+
+<div id="setup" hidden>
+  <h1>Configura tu Google Drive</h1>
+  <p>Esta página guarda toda la información directamente en tu Google Drive — no depende de ninguna otra cuenta. Para eso necesitas un <strong>Client ID</strong> de Google, gratis, que generas una sola vez.</p>
+  <ol>
+    <li>Entra a <code>console.cloud.google.com</code> con la cuenta de Google que vas a usar para esto.</li>
+    <li>Crea un proyecto nuevo (cualquier nombre, ej. "Libro de Fiado").</li>
+    <li>Ve a <strong>APIs y servicios → Biblioteca</strong>, busca <strong>Google Drive API</strong> y actívala.</li>
+    <li>Ve a <strong>APIs y servicios → Pantalla de consentimiento OAuth</strong>: tipo "Externo", pon un nombre y tu correo, y guarda (deja el estado en "Prueba" y agrégate a ti mismo como usuario de prueba).</li>
+    <li>Ve a <strong>APIs y servicios → Credenciales → Crear credenciales → ID de cliente de OAuth</strong>, tipo <strong>Aplicación web</strong>.</li>
+    <li>En <strong>Orígenes de JavaScript autorizados</strong> pega exactamente esto: <span class="origin-box" id="originHint"></span></li>
+    <li>Copia el <strong>Client ID</strong> que te genera (termina en <code>.apps.googleusercontent.com</code>) y pégalo abajo.</li>
+  </ol>
+  <form id="setupForm">
+    <div class="field">
+      <label for="clientIdInput">Client ID de Google</label>
+      <input id="clientIdInput" type="text" placeholder="xxxxxxxxxx-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.apps.googleusercontent.com" required />
+    </div>
+    <button class="primary" type="submit">Guardar y conectar</button>
+  </form>
+</div>
+
+<div id="connectGate" hidden>
+  <h2>Conecta tu Google Drive</h2>
+  <p>Tus datos se guardan en una carpeta de tu propio Drive. Nadie más tiene acceso.</p>
+  <button class="primary" id="btnConnect" type="button">Conectar con Google</button>
+  <p style="margin-top:16px;"><button class="text" id="btnReconfig" type="button">Cambiar Client ID</button></p>
+</div>
+
+<div id="app" hidden>
+  <header class="top">
+    <div class="titles">
+      <h1>Libro de Fiado</h1>
+      <div class="source-row">
+        <p id="subtitle">Cargando tu cartera…</p>
+        <button class="icon" id="btnRefresh" type="button" title="Actualizar desde Google Drive">⟳</button>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="ghost" id="btnCuenta" type="button">Cuenta</button>
+      <button class="primary" id="btnNuevo" type="button">+ Nuevo deudor</button>
+    </div>
+  </header>
+
+  <div id="connWarning" class="banner err" hidden></div>
+
+  <section class="tiles" id="tiles"></section>
+  <section id="alertBox"></section>
+
+  <nav class="filters" id="filters" aria-label="Filtrar deudores">
+    <button class="chip" data-filter="todos" aria-pressed="true" type="button">Todos</button>
+    <button class="chip" data-filter="hoy" aria-pressed="false" type="button">Hoy</button>
+    <button class="chip" data-filter="atrasado" aria-pressed="false" type="button">Atrasados</button>
+    <button class="chip" data-filter="proximo" aria-pressed="false" type="button">Próximos</button>
+    <button class="chip" data-filter="pagado" aria-pressed="false" type="button">Pagados</button>
+  </nav>
+
+  <section class="list" id="list"></section>
+  <div class="empty" id="emptyState" hidden></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- Modal: nuevo/editar deudor -->
+<dialog id="dlgDeudor">
+  <div class="dlg-inner">
+    <h2 id="dlgDeudorTitle">Nuevo deudor</h2>
+    <p class="dlg-sub">Registra a quién le prestaste y cómo va a pagarte.</p>
+    <form id="formDeudor">
+      <div class="field">
+        <label for="fNombre">Nombre</label>
+        <input id="fNombre" name="nombre" type="text" required placeholder="Ej. Carlos Ramírez" />
+      </div>
+      <div class="field">
+        <label for="fTelefono">Teléfono (opcional)</label>
+        <input id="fTelefono" name="telefono" type="tel" placeholder="Ej. 300 123 4567" />
+      </div>
+      <div class="row2">
+        <div class="field">
+          <label for="fMonto">Monto prestado</label>
+          <input id="fMonto" name="monto" type="number" min="0" step="1" required placeholder="500000" />
+        </div>
+        <div class="field">
+          <label for="fCuota">Monto a cobrar cada vez</label>
+          <input id="fCuota" name="cuota" type="number" min="0" step="1" required placeholder="50000" />
+        </div>
+      </div>
+      <div class="row2">
+        <div class="field">
+          <label for="fFrecuenciaPreset">Cada cuánto cobras</label>
+          <select id="fFrecuenciaPreset" name="frecuenciaPreset">
+            <option value="7">Semanal</option>
+            <option value="15">Quincenal</option>
+            <option value="30" selected>Mensual</option>
+            <option value="custom">Personalizado</option>
+          </select>
+        </div>
+        <div class="field" id="fFrecCustomWrap" hidden>
+          <label for="fFrecCustom">Cada cuántos días</label>
+          <input id="fFrecCustom" name="frecuenciaCustom" type="number" min="1" step="1" placeholder="10" />
+        </div>
+        <div class="field" id="fFechaWrap">
+          <label for="fFecha">Próximo cobro</label>
+          <input id="fFecha" name="fecha" type="date" required />
+        </div>
+      </div>
+      <div class="field">
+        <label for="fNotas">Notas (opcional)</label>
+        <textarea id="fNotas" name="notas" placeholder="Ej. presta para arreglar la moto, paga los viernes"></textarea>
+      </div>
+      <div class="dlg-actions">
+        <button type="button" class="ghost" id="btnCancelDeudor">Cancelar</button>
+        <button type="submit" class="primary">Guardar</button>
+      </div>
+    </form>
+  </div>
+</dialog>
+
+<!-- Modal: registrar cobro -->
+<dialog id="dlgCobro">
+  <div class="dlg-inner">
+    <h2>Registrar cobro</h2>
+    <p class="dlg-sub" id="cobroSub"></p>
+    <form id="formCobro">
+      <div class="row2">
+        <div class="field">
+          <label for="cMonto">Monto cobrado</label>
+          <input id="cMonto" name="monto" type="number" min="0" step="1" required />
+        </div>
+        <div class="field">
+          <label for="cFecha">Fecha del cobro</label>
+          <input id="cFecha" name="fecha" type="date" required />
+        </div>
+      </div>
+      <div class="field">
+        <label for="cNota">Nota (opcional)</label>
+        <input id="cNota" name="nota" type="text" placeholder="Ej. abono parcial" />
+      </div>
+      <div class="dlg-actions">
+        <button type="button" class="ghost" id="btnCancelCobro">Cancelar</button>
+        <button type="submit" class="primary">Guardar cobro</button>
+      </div>
+    </form>
+  </div>
+</dialog>
+
+<!-- Modal: detalle -->
+<dialog id="dlgDetalle">
+  <div class="dlg-inner">
+    <h2 id="detNombre"></h2>
+    <p class="dlg-sub" id="detTelefono"></p>
+    <div class="detail-stats">
+      <div><div class="label">Prestado</div><div class="val mono" id="detPrestado"></div></div>
+      <div><div class="label">Pagado</div><div class="val mono" id="detPagado"></div></div>
+      <div><div class="label">Saldo</div><div class="val mono" id="detSaldo"></div></div>
+    </div>
+    <div id="detNotasWrap" class="field" hidden>
+      <label>Notas</label>
+      <p id="detNotas" style="margin:0;font-size:0.86rem;color:var(--ink-soft);"></p>
+    </div>
+    <table class="hist-table">
+      <thead><tr><th>Fecha</th><th>Nota</th><th style="text-align:right">Monto</th></tr></thead>
+      <tbody id="detHistBody"></tbody>
+    </table>
+    <p class="hist-empty" id="detHistEmpty" hidden>Sin cobros registrados todavía.</p>
+    <div class="dlg-actions" style="justify-content: space-between; flex-wrap: wrap;">
+      <div id="deleteZone">
+        <button type="button" class="danger-text" id="btnDeletePrompt">Eliminar deudor</button>
+        <span id="deleteConfirm" hidden>
+          ¿Seguro? <button type="button" class="danger-text" id="btnDeleteConfirm">Sí, eliminar</button>
+          <button type="button" class="text" id="btnDeleteCancel">Cancelar</button>
+        </span>
+      </div>
+      <div style="display:flex; gap:10px;">
+        <button type="button" class="ghost" id="btnCloseDetalle">Cerrar</button>
+        <button type="button" class="ghost" id="btnEditarDetalle">Editar</button>
+        <button type="button" class="primary" id="btnCobrarDetalle">Registrar cobro</button>
+      </div>
+    </div>
+  </div>
+</dialog>
+
+<!-- Modal: cuenta -->
+<dialog id="dlgCuenta">
+  <div class="dlg-inner">
+    <h2>Tu cuenta</h2>
+    <p class="dlg-sub" id="cuentaInfo">Conectado con Google Drive.</p>
+    <div class="dlg-actions" style="justify-content: space-between;">
+      <button type="button" class="danger-text" id="btnOlvidarClientId">Olvidar configuración</button>
+      <button type="button" class="ghost" id="btnCerrarCuenta">Cerrar</button>
+    </div>
+  </div>
+</dialog>
+
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script>
+(function () {
+  "use strict";
+
+  // ---------- date helpers ----------
+  function parseLocalDate(iso) { var p = iso.split("-").map(Number); return new Date(p[0], p[1] - 1, p[2]); }
+  function toISO(d) { var y = d.getFullYear(), m = String(d.getMonth() + 1).padStart(2, "0"), day = String(d.getDate()).padStart(2, "0"); return y + "-" + m + "-" + day; }
+  function todayISO() { return toISO(new Date()); }
+  function addDays(iso, n) { var d = parseLocalDate(iso); d.setDate(d.getDate() + n); return toISO(d); }
+  function diffDays(isoA, isoB) { return Math.round((parseLocalDate(isoA) - parseLocalDate(isoB)) / 86400000); }
+  var MESES = ["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
+  function formatDate(iso) { if (!iso) return ""; var d = parseLocalDate(iso); return d.getDate() + " " + MESES[d.getMonth()] + " " + d.getFullYear(); }
+  function formatMoney(n) { n = Number(n) || 0; return "$ " + new Intl.NumberFormat("es-CO").format(Math.round(n)); }
+  function sameMonth(iso, ref) { var a = parseLocalDate(iso), b = parseLocalDate(ref); return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth(); }
+  function uid() { if (window.crypto && crypto.randomUUID) return crypto.randomUUID(); return "id-" + Date.now() + "-" + Math.random().toString(16).slice(2); }
+  function esc(s) { return String(s || "").replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+
+  var $ = function (sel) { return document.querySelector(sel); };
+
+  // ---------- state ----------
+  var deudores = [];
+  var currentFilter = "todos";
+  var editingId = null, cobroId = null, detalleId = null;
+
+  function toast(msg) {
+    var t = $("#toast");
+    t.textContent = msg;
+    t.classList.add("show");
+    clearTimeout(toast._h);
+    toast._h = setTimeout(function () { t.classList.remove("show"); }, 2200);
+  }
+
+  function status(d) {
+    if (!d.activo) return "pagado";
+    var diff = diffDays(d.proximoCobro, todayISO());
+    if (diff < 0) return "atrasado";
+    if (diff === 0) return "hoy";
+    return "proximo";
+  }
+  function pillLabel(d) {
+    var s = status(d);
+    if (s === "pagado") return "Pagado";
+    if (s === "hoy") return "Hoy";
+    if (s === "atrasado") return "Atrasado " + Math.abs(diffDays(d.proximoCobro, todayISO())) + "d";
+    var n = diffDays(d.proximoCobro, todayISO());
+    return "En " + n + (n === 1 ? " día" : " días");
+  }
+  function freqLabel(days) {
+    if (days === 7) return "semanal";
+    if (days === 15) return "quincenal";
+    if (days === 30) return "mensual";
+    return "cada " + days + " días";
+  }
+
+  // ---------- render ----------
+  function render() {
+    var activos = deudores.filter(function (d) { return d.activo; });
+    var hoy = activos.filter(function (d) { return status(d) === "hoy"; });
+    var atrasados = activos.filter(function (d) { return status(d) === "atrasado"; });
+    var cartera = activos.reduce(function (s, d) { return s + d.saldo; }, 0);
+    var cobradoMes = 0;
+    deudores.forEach(function (d) { (d.historial || []).forEach(function (h) { if (sameMonth(h.fecha, todayISO())) cobradoMes += h.monto; }); });
+    var montoHoy = hoy.reduce(function (s, d) { return s + d.cuota; }, 0);
+    var montoAtrasado = atrasados.reduce(function (s, d) { return s + d.saldo; }, 0);
+
+    $("#subtitle").textContent = activos.length
+      ? activos.length + (activos.length === 1 ? " deudor activo" : " deudores activos")
+      : "Aún no tienes deudores registrados";
+
+    $("#tiles").innerHTML =
+      tile("Cartera activa", formatMoney(cartera), activos.length + (activos.length === 1 ? " persona" : " personas"), "") +
+      tile("Para cobrar hoy", String(hoy.length), formatMoney(montoHoy), hoy.length ? "warn" : "") +
+      tile("Atrasados", String(atrasados.length), formatMoney(montoAtrasado), atrasados.length ? "danger" : "") +
+      tile("Cobrado este mes", formatMoney(cobradoMes), "", "");
+
+    renderAlert(hoy, atrasados);
+    renderList(activos.concat(deudores.filter(function (d) { return !d.activo; })));
+  }
+  function tile(label, value, sub, cls) {
+    return '<div class="tile ' + (cls || "") + '"><div class="label">' + label + '</div><div class="value">' + value + '</div>' + (sub ? '<div class="sub">' + sub + '</div>' : "") + '</div>';
+  }
+  function renderAlert(hoy, atrasados) {
+    var box = $("#alertBox");
+    var items = atrasados.concat(hoy);
+    if (!items.length) {
+      box.innerHTML = '<div class="alert calm"><h2>✓ Al día</h2><p style="margin:0;font-size:0.85rem;">No tienes cobros pendientes por hoy.</p></div>';
+      return;
+    }
+    var rows = items.map(function (d) {
+      return '<div class="row"><div class="who"><strong>' + esc(d.nombre) + '</strong><span>' + pillLabel(d) + ' · ' + freqLabel(d.frecuenciaDias) + '</span></div>' +
+        '<div style="display:flex; align-items:center; gap:10px;"><span class="amt mono">' + formatMoney(d.cuota) + '</span>' +
+        '<button class="ghost" type="button" data-cobrar="' + d.id + '">Registrar</button></div></div>';
+    }).join("");
+    box.innerHTML = '<div class="alert has-items"><h2>⚠ Cobros pendientes (' + items.length + ')</h2>' + rows + '</div>';
+    box.querySelectorAll("[data-cobrar]").forEach(function (btn) { btn.addEventListener("click", function () { openCobro(btn.getAttribute("data-cobrar")); }); });
+  }
+  function filteredList(all) { if (currentFilter === "todos") return all; return all.filter(function (d) { return status(d) === currentFilter; }); }
+  function renderList(all) {
+    var list = filteredList(all);
+    var wrap = $("#list"), empty = $("#emptyState");
+    if (!deudores.length) {
+      wrap.hidden = true; empty.hidden = false;
+      empty.innerHTML = '<div class="display">Todavía no hay nada en el libro</div><p>Agrega a la primera persona a la que le prestaste para empezar a llevar la cuenta.</p>';
+      return;
+    }
+    if (!list.length) {
+      wrap.hidden = true; empty.hidden = false;
+      empty.innerHTML = '<div class="display">Nada por aquí</div><p>No hay deudores en este filtro.</p>';
+      return;
+    }
+    wrap.hidden = false; empty.hidden = true;
+    wrap.innerHTML = list.map(cardHTML).join("");
+    wrap.querySelectorAll(".card").forEach(function (el) {
+      el.addEventListener("click", function (e) { if (e.target.closest("button")) return; openDetalle(el.getAttribute("data-id")); });
+      el.setAttribute("tabindex", "0"); el.setAttribute("role", "button");
+      el.addEventListener("keydown", function (e) { if (e.key === "Enter") openDetalle(el.getAttribute("data-id")); });
+    });
+    wrap.querySelectorAll("[data-cobrar]").forEach(function (btn) { btn.addEventListener("click", function () { openCobro(btn.getAttribute("data-cobrar")); }); });
+    wrap.querySelectorAll("[data-ver]").forEach(function (btn) { btn.addEventListener("click", function () { openDetalle(btn.getAttribute("data-ver")); }); });
+  }
+  function cardHTML(d) {
+    var s = status(d);
+    return '<article class="card" data-id="' + d.id + '">' +
+      '<div class="head"><div><div class="name">' + esc(d.nombre) + '</div>' + (d.telefono ? '<div class="phone">' + esc(d.telefono) + '</div>' : '') + '</div>' +
+      '<span class="pill ' + s + '">' + pillLabel(d) + '</span></div>' +
+      '<div class="balance mono"><small>Saldo pendiente</small>' + (d.activo ? formatMoney(d.saldo) : formatMoney(0)) + '</div>' +
+      '<div class="meta"><span>Cuota ' + formatMoney(d.cuota) + '</span><span>' + freqLabel(d.frecuenciaDias) + '</span></div>' +
+      '<div class="meta"><span>Próx. cobro</span><span>' + (d.activo ? formatDate(d.proximoCobro) : "—") + '</span></div>' +
+      '<div class="actions">' + (d.activo ? '<button class="ghost" type="button" data-cobrar="' + d.id + '">Registrar cobro</button>' : '') +
+      '<button class="ghost" type="button" data-ver="' + d.id + '">Ver detalle</button></div></article>';
+  }
+
+  // ---------- filters ----------
+  $("#filters").addEventListener("click", function (e) {
+    var btn = e.target.closest("button.chip");
+    if (!btn) return;
+    currentFilter = btn.getAttribute("data-filter");
+    $("#filters").querySelectorAll("button.chip").forEach(function (b) { b.setAttribute("aria-pressed", b === btn ? "true" : "false"); });
+    render();
+  });
+
+  // ---------- deudor form ----------
+  var dlgDeudor = $("#dlgDeudor");
+  $("#fFrecuenciaPreset").addEventListener("change", function () { $("#fFrecCustomWrap").hidden = this.value !== "custom"; });
+  function openNuevo() {
+    editingId = null;
+    $("#dlgDeudorTitle").textContent = "Nuevo deudor";
+    $("#formDeudor").reset();
+    $("#fFrecuenciaPreset").value = "30";
+    $("#fFrecCustomWrap").hidden = true;
+    $("#fFecha").value = todayISO();
+    dlgDeudor.showModal();
+    $("#fNombre").focus();
+  }
+  function openEditar(d) {
+    editingId = d.id;
+    $("#dlgDeudorTitle").textContent = "Editar deudor";
+    $("#fNombre").value = d.nombre;
+    $("#fTelefono").value = d.telefono || "";
+    $("#fMonto").value = d.monto;
+    $("#fCuota").value = d.cuota;
+    var preset = [7, 15, 30].includes(d.frecuenciaDias) ? String(d.frecuenciaDias) : "custom";
+    $("#fFrecuenciaPreset").value = preset;
+    $("#fFrecCustomWrap").hidden = preset !== "custom";
+    $("#fFrecCustom").value = preset === "custom" ? d.frecuenciaDias : "";
+    $("#fFecha").value = d.proximoCobro;
+    $("#fNotas").value = d.notas || "";
+    dlgDeudor.showModal();
+    $("#fNombre").focus();
+  }
+  $("#btnNuevo").addEventListener("click", openNuevo);
+  $("#btnCancelDeudor").addEventListener("click", function () { dlgDeudor.close(); });
+  $("#formDeudor").addEventListener("submit", async function (e) {
+    e.preventDefault();
+    var fd = new FormData(e.target);
+    var preset = fd.get("frecuenciaPreset");
+    var frecuenciaDias = preset === "custom" ? Math.max(1, parseInt(fd.get("frecuenciaCustom"), 10) || 1) : parseInt(preset, 10);
+    var monto = Math.max(0, Number(fd.get("monto")) || 0);
+    var cuota = Math.max(0, Number(fd.get("cuota")) || 0);
+    var payload = { nombre: fd.get("nombre").trim(), telefono: fd.get("telefono").trim(), cuota: cuota, frecuenciaDias: frecuenciaDias, proximoCobro: fd.get("fecha"), notas: fd.get("notas").trim() };
+    if (!payload.nombre) return;
+    if (editingId) {
+      await Store.save(editingId, payload);
+      toast("Cambios guardados");
+    } else {
+      payload.id = uid();
+      payload.monto = monto;
+      payload.saldo = monto;
+      payload.activo = true;
+      payload.creado = new Date().toISOString();
+      payload.historial = [];
+      await Store.add(payload);
+      toast("Deudor agregado");
+    }
+    dlgDeudor.close();
+  });
+
+  // ---------- cobro form ----------
+  var dlgCobro = $("#dlgCobro");
+  function openCobro(id) {
+    var d = deudores.find(function (x) { return x.id === id; });
+    if (!d) return;
+    cobroId = id;
+    $("#cobroSub").textContent = esc(d.nombre) + " · saldo actual " + formatMoney(d.saldo);
+    $("#cMonto").value = Math.min(d.cuota, d.saldo) || d.cuota;
+    $("#cFecha").value = todayISO();
+    $("#cNota").value = "";
+    dlgCobro.showModal();
+    $("#cMonto").focus();
+  }
+  $("#btnCancelCobro").addEventListener("click", function () { dlgCobro.close(); });
+  $("#formCobro").addEventListener("submit", async function (e) {
+    e.preventDefault();
+    var fd = new FormData(e.target);
+    var monto = Math.max(0, Number(fd.get("monto")) || 0);
+    var fecha = fd.get("fecha");
+    var nota = fd.get("nota").trim();
+    var d = deudores.find(function (x) { return x.id === cobroId; });
+    if (!d) return;
+    var nuevoSaldo = Math.max(0, d.saldo - monto);
+    var historial = (d.historial || []).concat([{ fecha: fecha, monto: monto, nota: nota }]).slice(-200);
+    var patch = { saldo: nuevoSaldo, historial: historial };
+    if (nuevoSaldo <= 0) patch.activo = false; else patch.proximoCobro = addDays(fecha, d.frecuenciaDias);
+    await Store.save(d.id, patch);
+    dlgCobro.close();
+    toast(nuevoSaldo <= 0 ? "Deuda saldada 🎉" : "Cobro registrado");
+  });
+
+  // ---------- detalle ----------
+  var dlgDetalle = $("#dlgDetalle");
+  function openDetalle(id) {
+    var d = deudores.find(function (x) { return x.id === id; });
+    if (!d) return;
+    detalleId = id;
+    $("#deleteConfirm").hidden = true;
+    $("#btnDeletePrompt").hidden = false;
+    $("#detNombre").textContent = d.nombre;
+    $("#detTelefono").textContent = d.telefono || "";
+    var pagado = (d.historial || []).reduce(function (s, h) { return s + h.monto; }, 0);
+    $("#detPrestado").textContent = formatMoney(d.monto);
+    $("#detPagado").textContent = formatMoney(pagado);
+    $("#detSaldo").textContent = formatMoney(d.saldo);
+    if (d.notas) { $("#detNotasWrap").hidden = false; $("#detNotas").textContent = d.notas; } else { $("#detNotasWrap").hidden = true; }
+    var hist = (d.historial || []).slice().reverse();
+    if (hist.length) {
+      $("#detHistBody").innerHTML = hist.map(function (h) { return '<tr><td class="mono">' + formatDate(h.fecha) + '</td><td>' + esc(h.nota || "—") + '</td><td class="amt mono">' + formatMoney(h.monto) + '</td></tr>'; }).join("");
+      $("#detHistEmpty").hidden = true;
+    } else { $("#detHistBody").innerHTML = ""; $("#detHistEmpty").hidden = false; }
+    $("#btnCobrarDetalle").hidden = !d.activo;
+    dlgDetalle.showModal();
+  }
+  $("#btnCloseDetalle").addEventListener("click", function () { dlgDetalle.close(); });
+  $("#btnEditarDetalle").addEventListener("click", function () { var d = deudores.find(function (x) { return x.id === detalleId; }); dlgDetalle.close(); if (d) openEditar(d); });
+  $("#btnCobrarDetalle").addEventListener("click", function () { var id = detalleId; dlgDetalle.close(); openCobro(id); });
+  $("#btnDeletePrompt").addEventListener("click", function () { $("#deleteConfirm").hidden = false; $("#btnDeletePrompt").hidden = true; });
+  $("#btnDeleteCancel").addEventListener("click", function () { $("#deleteConfirm").hidden = true; $("#btnDeletePrompt").hidden = false; });
+  $("#btnDeleteConfirm").addEventListener("click", async function () { await Store.remove(detalleId); dlgDetalle.close(); toast("Deudor eliminado"); });
+
+  // =====================================================================
+  // Google sign-in + Drive storage (no Claude account involved at all)
+  // =====================================================================
+  var CID_KEY = "libroFiado.clientId";
+  var SCOPES = "https://www.googleapis.com/auth/drive.file";
+  var FOLDER_NAME = "Libro de Fiado";
+  var FILE_NAME = "datos.json";
+
+  var clientId = null;
+  var tokenClient = null;
+  var accessToken = null;
+  var folderId = null;
+  var fileId = null;
+  var polling = null;
+
+  function showBanner(msg) { var b = $("#connWarning"); b.textContent = msg; b.hidden = false; }
+  function hideBanner() { $("#connWarning").hidden = true; }
+
+  function gapiHeaders(extra) { return Object.assign({ Authorization: "Bearer " + accessToken }, extra || {}); }
+
+  async function driveFetch(url, opts) {
+    opts = opts || {};
+    opts.headers = gapiHeaders(opts.headers);
+    var res = await fetch(url, opts);
+    if (res.status === 401) { var e = new Error("unauthorized"); e.code = "unauthorized"; throw e; }
+    if (!res.ok) { var t = await res.text().catch(function () { return ""; }); var e2 = new Error(t || ("HTTP " + res.status)); e2.code = "http_" + res.status; throw e2; }
+    return res;
+  }
+
+  async function findOrCreateFolder() {
+    var q = encodeURIComponent("mimeType='application/vnd.google-apps.folder' and name='" + FOLDER_NAME + "' and trashed=false and 'root' in parents");
+    var res = await driveFetch("https://www.googleapis.com/drive/v3/files?q=" + q + "&fields=files(id,name)");
+    var data = await res.json();
+    if (data.files && data.files.length) return data.files[0].id;
+    var created = await driveFetch("https://www.googleapis.com/drive/v3/files", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: FOLDER_NAME, mimeType: "application/vnd.google-apps.folder" })
+    });
+    var f = await created.json();
+    return f.id;
+  }
+
+  async function findOrCreateFile(folder) {
+    var q = encodeURIComponent("'" + folder + "' in parents and name='" + FILE_NAME + "' and trashed=false");
+    var res = await driveFetch("https://www.googleapis.com/drive/v3/files?q=" + q + "&fields=files(id,name)");
+    var data = await res.json();
+    if (data.files && data.files.length) return data.files[0].id;
+    var created = await driveFetch("https://www.googleapis.com/drive/v3/files", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: FILE_NAME, parents: [folder], mimeType: "application/json" })
+    });
+    var f = await created.json();
+    await driveFetch("https://www.googleapis.com/upload/drive/v3/files/" + f.id + "?uploadType=media", {
+      method: "PATCH", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ version: 1, deudores: [] })
+    });
+    return f.id;
+  }
+
+  async function readRemote() {
+    var res = await driveFetch("https://www.googleapis.com/drive/v3/files/" + fileId + "?alt=media");
+    var text = await res.text();
+    var data;
+    try { data = JSON.parse(text || "{}"); } catch (e) { data = {}; }
+    return Array.isArray(data.deudores) ? data.deudores : [];
+  }
+  async function writeRemote(list) {
+    await driveFetch("https://www.googleapis.com/upload/drive/v3/files/" + fileId + "?uploadType=media", {
+      method: "PATCH", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ version: 1, deudores: list })
+    });
+  }
+
+  function silentConnect() {
+    return new Promise(function (resolve) {
+      if (!tokenClient) { resolve(false); return; }
+      tokenClient.callback = function (resp) {
+        if (resp && resp.access_token) { accessToken = resp.access_token; resolve(true); }
+        else resolve(false);
+      };
+      try { tokenClient.requestAccessToken({ prompt: "" }); } catch (e) { resolve(false); }
+    });
+  }
+  function interactiveConnect() {
+    return new Promise(function (resolve, reject) {
+      tokenClient.callback = function (resp) {
+        if (resp && resp.access_token) { accessToken = resp.access_token; resolve(true); }
+        else reject(resp);
+      };
+      tokenClient.requestAccessToken({ prompt: "consent" });
+    });
+  }
+
+  async function withReauth(fn) {
+    try { return await fn(); }
+    catch (err) {
+      if (err && err.code === "unauthorized") {
+        var ok = await silentConnect();
+        if (ok) { try { return await fn(); } catch (e2) { showReconnect(); throw e2; } }
+        showReconnect();
+      }
+      throw err;
+    }
+  }
+  function showReconnect() {
+    showBanner("Se venció el acceso a tu Google Drive. Dale clic en 'Cuenta' para reconectar.");
+  }
+
+  async function refresh(silent) {
+    try {
+      deudores = await withReauth(readRemote);
+      render();
+      hideBanner();
+      return true;
+    } catch (err) {
+      if (!silent) showBanner("No se pudo leer tu Drive ahora mismo. Intenta con el botón ⟳.");
+      return false;
+    }
+  }
+
+  var Store = {
+    add: async function (payload) {
+      try {
+        var list = await withReauth(readRemote);
+        list = list.concat([payload]);
+        await withReauth(function () { return writeRemote(list); });
+        deudores = list; render();
+      } catch (e) { toast("No se pudo guardar en Drive."); }
+    },
+    save: async function (id, patch) {
+      try {
+        var list = await withReauth(readRemote);
+        list = list.map(function (d) { return d.id === id ? Object.assign({}, d, patch) : d; });
+        await withReauth(function () { return writeRemote(list); });
+        deudores = list; render();
+      } catch (e) { toast("No se pudo guardar en Drive."); }
+    },
+    remove: async function (id) {
+      try {
+        var list = await withReauth(readRemote);
+        list = list.filter(function (d) { return d.id !== id; });
+        await withReauth(function () { return writeRemote(list); });
+        deudores = list; render();
+      } catch (e) { toast("No se pudo eliminar en Drive."); }
+    }
+  };
+
+  $("#btnRefresh").addEventListener("click", async function () {
+    var btn = $("#btnRefresh");
+    btn.classList.add("spinning");
+    await refresh(false);
+    btn.classList.remove("spinning");
+    toast("Actualizado desde Drive");
+  });
+
+  function startPolling() {
+    if (polling) clearInterval(polling);
+    polling = setInterval(function () { if (document.visibilityState === "visible") refresh(true); }, 45000);
+    document.addEventListener("visibilitychange", function () { if (document.visibilityState === "visible") refresh(true); });
+  }
+
+  async function afterConnected() {
+    $("#connectGate").hidden = true;
+    $("#setup").hidden = true;
+    $("#app").hidden = false;
+    try {
+      folderId = await withReauth(findOrCreateFolder);
+      fileId = await withReauth(function () { return findOrCreateFile(folderId); });
+      await refresh(false);
+      startPolling();
+    } catch (err) {
+      showBanner("No se pudo conectar con tu Google Drive. Revisa el botón 'Cuenta'.");
+    }
+  }
+
+  function initTokenClient() {
+    tokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: clientId,
+      scope: SCOPES,
+      callback: function () {}
+    });
+  }
+
+  async function bootConnectFlow() {
+    initTokenClient();
+    var ok = await silentConnect();
+    if (ok) { afterConnected(); return; }
+    $("#connectGate").hidden = false;
+  }
+
+  $("#btnConnect").addEventListener("click", async function () {
+    try { await interactiveConnect(); afterConnected(); }
+    catch (e) { toast("No se pudo conectar con Google."); }
+  });
+
+  // ---------- setup screen ----------
+  $("#originHint").textContent = window.location.origin;
+  $("#setupForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var v = $("#clientIdInput").value.trim();
+    if (!v) return;
+    clientId = v;
+    try { localStorage.setItem(CID_KEY, v); } catch (err) {}
+    $("#setup").hidden = true;
+    waitForGsi(bootConnectFlow);
+  });
+  $("#btnReconfig").addEventListener("click", function () {
+    $("#connectGate").hidden = true;
+    $("#clientIdInput").value = clientId || "";
+    $("#setup").hidden = false;
+  });
+
+  // ---------- cuenta modal ----------
+  var dlgCuenta = $("#dlgCuenta");
+  $("#btnCuenta").addEventListener("click", function () { dlgCuenta.showModal(); });
+  $("#btnCerrarCuenta").addEventListener("click", function () { dlgCuenta.close(); });
+  $("#btnOlvidarClientId").addEventListener("click", function () {
+    try { localStorage.removeItem(CID_KEY); } catch (e) {}
+    location.reload();
+  });
+
+  // ---------- boot ----------
+  function waitForGsi(cb) {
+    if (window.google && google.accounts && google.accounts.oauth2) { cb(); return; }
+    var tries = 0;
+    var h = setInterval(function () {
+      tries++;
+      if (window.google && google.accounts && google.accounts.oauth2) { clearInterval(h); cb(); }
+      else if (tries > 100) { clearInterval(h); showBanner("No se pudo cargar el inicio de sesión de Google. Revisa tu conexión a internet."); $("#connectGate").hidden = false; }
+    }, 100);
+  }
+
+  render();
+  try { clientId = localStorage.getItem(CID_KEY); } catch (e) { clientId = null; }
+  if (!clientId) {
+    $("#setup").hidden = false;
+  } else {
+    waitForGsi(bootConnectFlow);
+  }
+})();
+</script>
+</body>
+</html>
